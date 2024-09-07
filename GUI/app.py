@@ -13,13 +13,16 @@ class App:
         self.editor = VideoEditor("./res/dog.mp4")
         self.root = Tk()
         self.frame = ttk.Frame(self.root, padding=10)
-        self.frame.grid()
         self.homePage()
+        
         self.__run()
+
 
     def __run(self): self.root.mainloop()
 
+
     def homePage(self):
+        self.frame.grid()
         ttk.Button(self.frame, text = "reverte essa porra", command = self.editor.reverse).grid(column=0, row=0)
         ttk.Button(self.frame, text = "corta essa porra", command = self.editor.cut).grid(column=1, row=0)
         ttk.Button(self.frame, text = "Escreve a porra do vídeo", command= self.editor.write).grid(column=2, row=0)
