@@ -13,6 +13,7 @@ class VideoEditor(Plugins):
         super().__init__(self.result)
 
     def __setup(self):
+        os.makedirs("./output/", exist_ok = True)
         path = os.path.join(f"./output/{self.name}.mp4")
         fps = self.cap.get(cv2.CAP_PROP_FPS)
         shape = (int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)),  int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
