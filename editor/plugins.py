@@ -5,6 +5,13 @@ class Plugins(VideoEditorInterface):
     def __init__(self, path) -> None:
         super().__init__(path = path)
 
-    def reverse(self): self.result = Transform.reverse(self.result)
+    def reverse(self):
+        video = self.read()
+        reverse = Transform.reverse(video)
+        self.write(reverse)
+        video = None
 
-    def cut(self): self.result = Transform.cut(self.result) 
+    def cut(self):
+        video = self.read()
+        cut = Transform.cut(video)
+        self.write(cut)
