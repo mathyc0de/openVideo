@@ -1,3 +1,4 @@
+from editor import VideoEditor
 from PySide6.QtCore import *
 from PySide6.QtWidgets import *
 from PySide6.QtGui import *
@@ -57,16 +58,18 @@ class HomePage(QMainWindow):
         self._editor_section()
 
     def _file_section(self):
+        menu = self.menuBar().addMenu("&File")
         icon = QIcon.fromTheme(QIcon.ThemeIcon.DocumentOpen)
         open_action = QAction(icon, "&Open...", self,
                               shortcut=QKeySequence.Open, triggered=self.open)
-        self.menuBar().addMenu("&File").addAction(open_action)
+        menu.addAction(open_action)
     
     def _editor_section(self):
-        icon = QIcon.fromTheme(QIcon.ThemeIcon.CameraVideo)
-        open_action = QAction(icon, "&Editar...", self,
-                              shortcut=QKeySequence.Open, triggered=self.open)
-        self.menuBar().addMenu("&Edit").addAction(open_action)
+        menu = self.menuBar().addMenu("&Edit")
+        icon = QIcon.fromTheme(QIcon.ThemeIcon.MediaSeekBackward)
+        reverse_action = QAction(icon, "&Reverter...", self,
+                              shortcut=QKeySequence.Open, triggered=self._reverse_video)
+        menu.addAction(reverse_action)
 
     
     def _tool_bar(self):
@@ -105,6 +108,12 @@ class HomePage(QMainWindow):
     @Slot()
     def _reverse_video(self):
         self._ensure_stopped()
+        if self._player.hasVideo():
+            path = self._player.source().path()
+            editor = VideoEditor(path)
+            self._player.setSource(editor.reverse())
+            self._player.play()
+
 
     @Slot()
     def open(self):

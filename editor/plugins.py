@@ -41,7 +41,7 @@ class VideoEditorInterface:
 class Transform:
     @staticmethod
 
-    def reverse(video):
+    def reverse(video: list):
         videoReverse = []
         for img in video[::-1]:
             videoReverse.append(img)
@@ -55,39 +55,39 @@ class Transform:
 
 
 
-class Plugins(VideoEditorInterface):
+class VideoEditor(VideoEditorInterface):
     def __init__(self, path) -> None:
         super().__init__(path = path)
 
     def reverse(self):
-        video = self.read()
-        for img in video[::-1]:
-            self.out.write(img)
-        self.cap.release()
+        # video = self.read()
+        # for img in video[::-1]:
+        #     self.out.write(img)
+        # self.cap.release()
+        # self.out.release()
+        # os.remove(OUTPUT_DEFAULT)
+        # os.rename(self.output, OUTPUT_DEFAULT)
+        # self.setup()
+
+        frame_rate = self.cap.get(cv2.CV_CAP_PROP_FPS)
+        frame_msec = 1000 / frame_rate
+        self.cap.set(cv2.CV_CAP_PROP_POS_AVI_RATIO, 1)
+        video_time = self.cap.get(cv2.CV_CAP_PROP_POS_MSEC)
+        while (video_time > 0):
+            video_time -= frame_msec
+            print("a")
+            self.cap.set(cv2.CV_CAP_PROP_POS_MSEC, video_time)
+            _,frame = self.cap.read()
+            self.out.write(frame)
+            if (cv2.waitKey(frame_msec) >= 0):
+                break
         self.out.release()
-        os.remove(OUTPUT_DEFAULT)
-        os.rename(self.output, OUTPUT_DEFAULT)
-        self.setup()
+        self.cap.release()
+        return self.output
+        
 
     def cut(self):
         video = self.read()
-        cut = Transform.cut(video)
+        cutie = len(video) // 2
+        return video[cutie:]
         self.write(cut)
-
-
-
-class VideoEditor(Plugins):
-    def __init__(self, path: str) -> None:
-        super().__init__(path=path)
-    
-
-
-
-
-
-
-
-
-
-if __name__ == "__main__":
-    VideoEditorInterface("./res/dog.mp4")
