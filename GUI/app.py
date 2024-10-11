@@ -1,52 +1,135 @@
-from tkinter import *
-from tkinter import ttk
-from editor import VideoEditor
-from pyvidplayer2 import VideoTkinter
-# root = Tk()
-# frm = ttk.Frame(root, padding=10)
-# frm.grid()
-# ttk.Label(frm, text="Hello World!").grid(column=0, row=0)
-# ttk.Button(frm, text="Quit", command=root.destroy).grid(column=1, row=0)
-# root.mainloop()
+from PySide6.QtCore import *
+from PySide6.QtWidgets import *
+from PySide6.QtGui import *
+from PySide6.QtMultimedia import (QAudioOutput, QMediaFormat,
+                                  QMediaPlayer)
+from PySide6.QtMultimediaWidgets import QVideoWidget
+import sys
+
+
+AVI = "video/x-msvideo"  # AVI
+
+
+MP4 = 'video/mp4'
+
+
+def get_supported_mime_types():
+    result = []
+    for f in QMediaFormat().supportedFileFormats(QMediaFormat.Decode):
+        mime_type = QMediaFormat(f).mimeType()
+        result.append(mime_type.name())
+    return result
 
 
 
 class App:
     def __init__(self) -> None:
-        self.root = Tk()
-        self.frame = ttk.Frame(self.root, padding=10)
-
-        #Video Player
-        self.video = VideoTkinter("./res/ace.mp4")          # Calling video player
-        self.canvas = Canvas(self.frame, width = self.video.current_size[0], height = self.video.current_size[1], highlightthickness=0)
-        self.homePage()                                     # Calling interface buttons
-        self.root.mainloop()
+        self.app = QApplication(sys.argv)
+        self.window = HomePage()
+        self.window.show()
+        self.app.exec()
 
 
-    def __updateVideo(self) -> None:
-        # Video player looping 
-        
-        self.video.draw(self.canvas, (self.video.current_size[0] / 2, self.video.current_size[1] / 2), force_draw=False)
-        if self.video.active:
-            self.root.after(16, self.__updateVideo) # for around 60 fps
-        else:
-            self.root.destroy()
+class HomePage(QMainWindow):
+
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("OpenVideo")
+        self._setupUI()
+        self.setCentralWidget(self._video_widget)
     
-    def __
-          
+    def _setupUI(self):
+        self._video_player()
+        self._tool_bar()
+        self._menu_bar()
+    
+    def _video_player(self):
+        self._audio_output = QAudioOutput()
+        self._player = QMediaPlayer()
+        self._player.setAudioOutput(self._audio_output)
+        self._video_widget = QVideoWidget()
+        self._player.setVideoOutput(self._video_widget)
+        self.setCentralWidget(self._video_widget)
+        self._mime_types = []
+    
+    def _menu_bar(self):
+        self._file_section()
+        self._editor_section()
+
+    def _file_section(self):
+        icon = QIcon.fromTheme(QIcon.ThemeIcon.DocumentOpen)
+        open_action = QAction(icon, "&Open...", self,
+                              shortcut=QKeySequence.Open, triggered=self.open)
+        self.menuBar().addMenu("&File").addAction(open_action)
+    
+    def _editor_section(self):
+        icon = QIcon.fromTheme(QIcon.ThemeIcon.CameraVideo)
+        open_action = QAction(icon, "&Editar...", self,
+                              shortcut=QKeySequence.Open, triggered=self.open)
+        self.menuBar().addMenu("&Edit").addAction(open_action)
+
+    
+    def _tool_bar(self):
+        tool_bar = QToolBar()
+        self.addToolBar(tool_bar)
+        self._play_btn(tool_bar)
+        self._pause_btn(tool_bar)
+        self._stop_btn(tool_bar)
+
+
+    def _play_btn(self, tool_bar):
+        icon = QIcon.fromTheme(QIcon.ThemeIcon.MediaPlaybackStart,
+                            self.style().standardIcon(QStyle.SP_MediaPlay))
+        self._play_action = tool_bar.addAction(icon, "Play")
+        self._play_action.triggered.connect(self._player.play)
+    
+    def _pause_btn(self, tool_bar):
+        icon = QIcon.fromTheme(QIcon.ThemeIcon.MediaPlaybackPause,
+                            self.style().standardIcon(QStyle.SP_MediaPause))
+        self._pause_action = tool_bar.addAction(icon, "Pause")
+        self._pause_action.triggered.connect(self._player.pause)
+    
+    def _stop_btn(self, tool_bar):
+        icon = QIcon.fromTheme(QIcon.ThemeIcon.MediaPlaybackStop,
+                        self.style().standardIcon(QStyle.SP_MediaStop))
+        self._stop_action = tool_bar.addAction(icon, "Stop")
+        self._stop_action.triggered.connect(self._ensure_stopped)
 
 
 
-    def homePage(self):
-        # Interface buttons.
+    @Slot()
+    def _ensure_stopped(self):
+        if self._player.playbackState() != QMediaPlayer.StoppedState:
+            self._player.stop()
 
-        self.frame.grid()
-        self.canvas.grid(row=1, columnspan=3)
-        self.__updateVideo()
-        ttk.Button(self.frame, text = ">|II", command = ).grid(column=0, row=2)
-        # ttk.Button(self.frame, text = "reverte essa porra", command = self.editor.reverse).grid(column=0, row=0)
-        # ttk.Button(self.frame, text = "corta essa porra", command = self.editor.cut).grid(column=1, row=0)
-        # ttk.Button(self.frame, text = "Escreve a porra do vídeo", command= self.editor.write).grid(column=2, row=0)
-        # pyvidplayer2.VideoTkinter("./res/dog.mp4").play()
+    @Slot()
+    def _reverse_video(self):
+        self._ensure_stopped()
 
+    @Slot()
+    def open(self):
+        self._ensure_stopped()
+        file_dialog = QFileDialog(self)
 
+        is_windows = sys.platform == 'win32'
+        if not self._mime_types:
+            self._mime_types = get_supported_mime_types()
+            if (is_windows and AVI not in self._mime_types):
+                self._mime_types.append(AVI)
+            elif MP4 not in self._mime_types:
+                self._mime_types.append(MP4)
+
+        file_dialog.setMimeTypeFilters(self._mime_types)
+
+        default_mimetype = AVI if is_windows else MP4
+        if default_mimetype in self._mime_types:
+            file_dialog.selectMimeTypeFilter(default_mimetype)
+
+        movies_location = QStandardPaths.writableLocation(QStandardPaths.MoviesLocation)
+        file_dialog.setDirectory(movies_location)
+        if file_dialog.exec() == QDialog.Accepted:
+            url = file_dialog.selectedUrls()[0]
+            self._player.setSource(url)
+            self._player.play()
+
+App()
