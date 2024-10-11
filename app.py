@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (QApplication, QDialog, QFileDialog,
 from PySide6.QtMultimedia import (QAudioOutput, QMediaFormat,
                                   QMediaPlayer)
 from PySide6.QtMultimediaWidgets import QVideoWidget
+from editor import VideoEditor
 
 
 
