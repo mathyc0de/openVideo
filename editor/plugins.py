@@ -69,14 +69,14 @@ class VideoEditor(VideoEditorInterface):
         # os.rename(self.output, OUTPUT_DEFAULT)
         # self.setup()
 
-        frame_rate = self.cap.get(cv2.CV_CAP_PROP_FPS)
+        frame_rate = self.cap.get(cv2.CAP_PROP_FPS)
         frame_msec = 1000 / frame_rate
-        self.cap.set(cv2.CV_CAP_PROP_POS_AVI_RATIO, 1)
-        video_time = self.cap.get(cv2.CV_CAP_PROP_POS_MSEC)
+        self.cap.set(cv2.CAP_PROP_POS_AVI_RATIO, 1)
+        video_time = self.cap.get(cv2.CAP_PROP_POS_MSEC)
         while (video_time > 0):
             video_time -= frame_msec
             print("a")
-            self.cap.set(cv2.CV_CAP_PROP_POS_MSEC, video_time)
+            self.cap.set(cv2.CAP_PROP_POS_MSEC, video_time)
             _,frame = self.cap.read()
             self.out.write(frame)
             if (cv2.waitKey(frame_msec) >= 0):
