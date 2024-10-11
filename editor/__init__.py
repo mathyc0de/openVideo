@@ -1,1 +1,1 @@
-from .video_editor import VideoEditor
+from .plugins import VideoEditor
