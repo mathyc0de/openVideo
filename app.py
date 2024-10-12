@@ -1,14 +1,14 @@
 from __future__ import annotations
 import sys
-from PySide6.QtCore import QStandardPaths, Qt, Slot
+from PySide6.QtCore import QStandardPaths, Qt, Slot, QUrl, QSize, QRect
 from PySide6.QtGui import QAction, QIcon, QKeySequence
-from PySide6.QtWidgets import (QApplication, QDialog, QFileDialog,
+from PySide6.QtWidgets import (QApplication, QDialog, QFileDialog, QLabel, QVBoxLayout,
                                QMainWindow, QSlider, QStyle, QToolBar)
 from PySide6.QtMultimedia import (QAudioOutput, QMediaFormat,
                                   QMediaPlayer)
 from PySide6.QtMultimediaWidgets import QVideoWidget
 from editor import VideoEditor
-
+import os.path
 
 
 AVI = "video/x-msvideo"  # AVI
@@ -40,6 +40,7 @@ class HomePage(QMainWindow):
         super().__init__()
         self.setWindowTitle("OpenVideo")
         self._setupUI()
+        self.resize(800, 600)
         self.setCentralWidget(self._video_widget)
     
     def _setupUI(self):
@@ -55,6 +56,9 @@ class HomePage(QMainWindow):
         self._player.setVideoOutput(self._video_widget)
         self.setCentralWidget(self._video_widget)
         self._mime_types = []
+    
+    # def _video_interface(self):
+    #     self.video_layout.addWidget(QLabel("a"))
     
     def _menu_bar(self):
         self._file_section()
@@ -77,7 +81,7 @@ class HomePage(QMainWindow):
     
     def _tool_bar(self):
         tool_bar = QToolBar()
-        self.addToolBar(tool_bar)
+        self.addToolBar(Qt.ToolBarArea.BottomToolBarArea, tool_bar)
         self._play_btn(tool_bar)
         self._pause_btn(tool_bar)
         self._stop_btn(tool_bar)
@@ -112,7 +116,8 @@ class HomePage(QMainWindow):
     def _reverse_video(self):
         self._ensure_stopped()
         if self._player.hasVideo():
-            path = self._player.source().path()
+            url = self._player.source()
+            path = url.toLocalFile() if isinstance(url, QUrl) else url.path()
             editor = VideoEditor(path)
             self._player.setSource(editor.reverse())
             self._player.play()
@@ -133,7 +138,7 @@ class HomePage(QMainWindow):
 
         file_dialog.setMimeTypeFilters(self._mime_types)
 
-        default_mimetype = AVI if is_windows else MP4
+        default_mimetype = MP4
         if default_mimetype in self._mime_types:
             file_dialog.selectMimeTypeFilter(default_mimetype)
 

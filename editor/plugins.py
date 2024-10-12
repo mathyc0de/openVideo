@@ -60,29 +60,23 @@ class VideoEditor(VideoEditorInterface):
         super().__init__(path = path)
 
     def reverse(self):
-        # video = self.read()
-        # for img in video[::-1]:
-        #     self.out.write(img)
-        # self.cap.release()
-        # self.out.release()
+        video = self.read()
+        for img in video[::-1]:
+            self.out.write(img)
+        self.cap.release()
+        self.out.release()
         # os.remove(OUTPUT_DEFAULT)
         # os.rename(self.output, OUTPUT_DEFAULT)
         # self.setup()
-
-        frame_rate = self.cap.get(cv2.CAP_PROP_FPS)
-        frame_msec = 1000 / frame_rate
-        self.cap.set(cv2.CAP_PROP_POS_AVI_RATIO, 1)
-        video_time = self.cap.get(cv2.CAP_PROP_POS_MSEC)
-        while (video_time > 0):
-            video_time -= frame_msec
-            print("a")
-            self.cap.set(cv2.CAP_PROP_POS_MSEC, video_time)
-            _,frame = self.cap.read()
-            self.out.write(frame)
-            if (cv2.waitKey(frame_msec) >= 0):
-                break
-        self.out.release()
-        self.cap.release()
+        # frame_index = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT)) - 1
+        # while frame_index != 0:
+        #     self.cap.set(cv2.CAP_PROP_POS_FRAMES, frame_index)
+        #     _, frame = self.cap.read()
+        #     self.out.write(frame)
+        #     frame_index -=1
+        #     print(frame_index)
+        # self.out.release()
+        # self.cap.release()
         return self.output
         
 
