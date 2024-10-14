@@ -56,9 +56,18 @@ class HomePage(QMainWindow):
         self._player.setVideoOutput(self._video_widget)
         self.setCentralWidget(self._video_widget)
         self._mime_types = []
-    
-    # def _video_interface(self):
-    #     self.video_layout.addWidget(QLabel("a"))
+
+    def resume(self):
+        if self._player.playbackState() != QMediaPlayer.PlaybackState.PausedState and self._player.hasVideo():
+            self.removeToolBar(self.tool_bar)
+            self._tool_bar(True)
+            self._player.pause()
+
+        elif self._player.hasVideo():
+            self.removeToolBar(self.tool_bar)
+            self._tool_bar(False)
+            self._player.play()
+
     
     def _menu_bar(self):
         self._file_section()
@@ -73,43 +82,58 @@ class HomePage(QMainWindow):
     
     def _editor_section(self):
         menu = self.menuBar().addMenu("&Edit")
+        self.reverse(menu)
+        self.save(menu)
+
+    
+    def reverse(self, menu):
         icon = QIcon.fromTheme(QIcon.ThemeIcon.MediaSeekBackward)
         reverse_action = QAction(icon, "&Reverter...", self,
                               shortcut=QKeySequence.Open, triggered=self._reverse_video)
         menu.addAction(reverse_action)
+    
+    def save(self, menu):
+        icon = QIcon.fromTheme(QIcon.ThemeIcon.DocumentSave)
+        save_action = QAction(icon, "&Salvar...", self,
+                              shortcut=QKeySequence.Open, triggered=self._save_video)
+        menu.addAction(save_action)
 
     
-    def _tool_bar(self):
-        tool_bar = QToolBar()
-        self.addToolBar(Qt.ToolBarArea.BottomToolBarArea, tool_bar)
-        self._play_btn(tool_bar)
-        self._pause_btn(tool_bar)
-        self._stop_btn(tool_bar)
+    def _tool_bar(self, paused: bool = True):
+        self.tool_bar = QToolBar()
+        self.addToolBar(Qt.ToolBarArea.BottomToolBarArea, self.tool_bar)
+        if paused:
+            self._play_btn()
+            self._stop_btn()
+        else:
+            self._pause_btn()
+            self._stop_btn()
 
 
-    def _play_btn(self, tool_bar):
+
+    def _play_btn(self):
         icon = QIcon.fromTheme(QIcon.ThemeIcon.MediaPlaybackStart,
                             self.style().standardIcon(QStyle.SP_MediaPlay))
-        self._play_action = tool_bar.addAction(icon, "Play")
-        self._play_action.triggered.connect(self._player.play)
+        self._play_action = self.tool_bar.addAction(icon, "Play")
+        self._play_action.triggered.connect(self.resume)
     
-    def _pause_btn(self, tool_bar):
+    def _pause_btn(self):
         icon = QIcon.fromTheme(QIcon.ThemeIcon.MediaPlaybackPause,
                             self.style().standardIcon(QStyle.SP_MediaPause))
-        self._pause_action = tool_bar.addAction(icon, "Pause")
-        self._pause_action.triggered.connect(self._player.pause)
+        self._pause_action = self.tool_bar.addAction(icon, "Pause")
+        self._pause_action.triggered.connect(self.resume)
     
-    def _stop_btn(self, tool_bar):
+    def _stop_btn(self):
         icon = QIcon.fromTheme(QIcon.ThemeIcon.MediaPlaybackStop,
                         self.style().standardIcon(QStyle.SP_MediaStop))
-        self._stop_action = tool_bar.addAction(icon, "Stop")
+        self._stop_action = self.tool_bar.addAction(icon, "Stop")
         self._stop_action.triggered.connect(self._ensure_stopped)
 
 
 
     @Slot()
     def _ensure_stopped(self):
-        if self._player.playbackState() != QMediaPlayer.StoppedState:
+        if self._player.playbackState() != QMediaPlayer.PlaybackState.StoppedState:
             self._player.stop()
 
     @Slot()
@@ -120,7 +144,13 @@ class HomePage(QMainWindow):
             path = url.toLocalFile() if isinstance(url, QUrl) else url.path()
             editor = VideoEditor(path)
             self._player.setSource(editor.reverse())
-            self._player.play()
+            self._player.pause()
+
+    @Slot()
+    def _save_video(self):
+        self._ensure_stopped()
+        if self._player.hasVideo():
+            VideoEditor.save_video(self.filename)
 
 
     @Slot()
@@ -146,7 +176,8 @@ class HomePage(QMainWindow):
         file_dialog.setDirectory(movies_location)
         if file_dialog.exec() == QDialog.Accepted:
             url = file_dialog.selectedUrls()[0]
+            self.filename = url.fileName()
             self._player.setSource(url)
-            self._player.play()
+            self._player.pause()
 
 App()
