@@ -3,6 +3,15 @@ from pathlib import Path
 import cv2
 import shutil
 
+"""
+Python PIP's package for open-cv is >>self-contained<< (can't access system packages)
+and its linux version is >>shipped only with open codecs<< apparently.
+
+This results in the opencv module shipped from PIP not being able to edit .mp4 videos in Linux.
+
+TODO: Recompile the OpenCV package so it can use proprietary codecs as .mp4.
+"""
+
 OUTPUT_DEFAULT = os.path.join("./output/tmp.mp4")
 
 class VideoEditorInterface:
