@@ -14,6 +14,9 @@ TODO: Recompile the OpenCV package so it can use proprietary codecs as .mp4.
 
 OUTPUT_DEFAULT = os.path.join("./output/tmp.mp4")
 
+def delete_temp():
+    os.remove(OUTPUT_DEFAULT)
+
 class VideoEditorInterface:
     def __init__(self, path: str) -> None:
         self.source = os.path.join(path)
@@ -43,24 +46,7 @@ class VideoEditorInterface:
     def write(self, video):
         for img in video:
             self.out.write(img)
-
-
-
-
-class Transform:
-    @staticmethod
-
-    def reverse(video: list):
-        videoReverse = []
-        for img in video[::-1]:
-            videoReverse.append(img)
-        return videoReverse
-    
-
-    @staticmethod
-    def cut(video: list[cv2.Mat]):
-        cutie = len(video) // 2
-        return video[cutie:]
+        self.out.release()
 
 
 
@@ -74,8 +60,8 @@ class VideoEditor(VideoEditorInterface):
             self.out.write(img)
         self.cap.release()
         self.out.release()
-        # os.remove(OUTPUT_DEFAULT)
-        # os.rename(self.output, OUTPUT_DEFAULT)
+        os.remove(OUTPUT_DEFAULT)
+        os.rename(self.output, OUTPUT_DEFAULT)
         # self.setup()
         # frame_index = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT)) - 1
         # while frame_index != 0:
@@ -86,11 +72,15 @@ class VideoEditor(VideoEditorInterface):
         #     print(frame_index)
         # self.out.release()
         # self.cap.release()
-        return self.output
+        return OUTPUT_DEFAULT
+    
+    @staticmethod
+    def save_video(filename):
+        path = os.path.join("./output/", filename)
+        shutil.copy(OUTPUT_DEFAULT, path)
         
 
     def cut(self):
         video = self.read()
         cutie = len(video) // 2
-        return video[cutie:]
-        self.write(cut)
+        self.write(cutie)
