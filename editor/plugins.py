@@ -16,7 +16,8 @@ TODO: Recompile the OpenCV package so it can use proprietary codecs as .mp4.
 OUTPUT_DEFAULT = os.path.join("./output/tmp.mp4")
 
 def delete_temp():
-    os.remove(OUTPUT_DEFAULT)
+    if os.path.isfile(OUTPUT_DEFAULT):
+        os.remove(OUTPUT_DEFAULT)
 
 class VideoEditorInterface:
     def __init__(self, path: str) -> None:
