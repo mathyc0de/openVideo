@@ -37,26 +37,49 @@ class HomePage(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("OpenVideo")
+
+        self.setAcceptDrops(True)
+
         self.video_time = 0
         self.tickpos = 0
+
         self._setupUI()
         self.resize(800, 600)
-        self.setCentralWidget(self._video_widget)
-    
+        #self.setCentralWidget(self._video_widget)
+
+        
     def _setupUI(self):
-        self._video_player()
         self._tool_bar()
         self._menu_bar()
+        #self._video_player()
         # self.progress_handler()
+
     
     def _video_player(self):
+        self.setAcceptDrops(True)
         self._audio_output = QAudioOutput()
         self._player = QMediaPlayer()
         self._player.setAudioOutput(self._audio_output)
-        self._video_widget = QVideoWidget()
+        self._video_widget = VideoWidget(self)  # Use the custom widget
+        self._video_widget._player = self._player  # Give access to the player
         self._player.setVideoOutput(self._video_widget)
-        self.setCentralWidget(self._video_widget)
         self._mime_types = []
+    
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        files = [u.toLocalFile() for u in event.mimeData().urls()]
+        firstURL = files[0]
+        print(firstURL)
+        self.open(firstURL)
+
+    def open_file(self, file_path):
+        self._player.setSource(QUrl.fromLocalFile(file_path))
+        self.filename = file_path.split('/')[-1]
 
     def reset_progress(self):
         self.tickpos = 0
@@ -188,9 +211,18 @@ class HomePage(QMainWindow):
 
 
     @Slot()
-    def open(self):
+    def open(self, draggedURL):
+        self._video_player()
         self._ensure_stopped()
         file_dialog = QFileDialog(self)
+        
+        if (draggedURL):
+            self.setCentralWidget(self._video_widget)
+            url = draggedURL
+            self._player.setSource(url)
+            self._player.pause()
+
+            return 1
 
         is_windows = sys.platform == 'win32'
         if not self._mime_types:
@@ -209,12 +241,37 @@ class HomePage(QMainWindow):
         movies_location = QStandardPaths.writableLocation(QStandardPaths.MoviesLocation)
         file_dialog.setDirectory(movies_location)
         if file_dialog.exec() == QDialog.Accepted:
+            self.setCentralWidget(self._video_widget)
             url = file_dialog.selectedUrls()[0]
             self.filename = url.fileName()
             self._player.durationChanged.connect(self.progress_handler)
             self._player.positionChanged.connect(self.increment_time)
             self._player.setSource(url)
             self._player.pause()
+
+
+
+class VideoWidget(QVideoWidget):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setAcceptDrops(True)
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        if event.mimeData().hasUrls():
+            file_path = event.mimeData().urls()[0].toLocalFile()
+            self.load_video(file_path)
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+
+
 
 
 App()
