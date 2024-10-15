@@ -41,6 +41,7 @@ class HomePage(QMainWindow):
         self.setWindowTitle("OpenVideo")
         self._setupUI()
         self.resize(800, 600)
+        self.setAcceptDrops(True)  # Enable drag-and-drop
         self.setCentralWidget(self._video_widget)
     
     def _setupUI(self):
@@ -56,6 +57,20 @@ class HomePage(QMainWindow):
         self._player.setVideoOutput(self._video_widget)
         self.setCentralWidget(self._video_widget)
         self._mime_types = []
+    
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+
+    def dropEvent(self, event):
+        print("\n\nOIEEE\n\n")
+        for url in event.mimeData().urls():
+            if url.isLocalFile():
+                self.open_file(url.toLocalFile())
+
+    def open_file(self, file_path):
+        self._player.setSource(QUrl.fromLocalFile(file_path))
+        self.filename = file_path.split('/')[-1]
 
     def resume(self):
         if self._player.playbackState() != QMediaPlayer.PlaybackState.PausedState and self._player.hasVideo():
