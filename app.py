@@ -1,6 +1,6 @@
 from __future__ import annotations
 import sys
-from PySide6.QtCore import QStandardPaths, Qt, Slot, QUrl, QSize, QRect
+from PySide6.QtCore import QStandardPaths, Qt, Slot, QUrl, QSize, QRect, Qt
 from PySide6.QtGui import QAction, QIcon, QKeySequence
 from PySide6.QtWidgets import (QApplication, QDialog, QFileDialog, QLabel, QVBoxLayout,
                                QMainWindow, QSlider, QStyle, QToolBar)
@@ -8,8 +8,6 @@ from PySide6.QtMultimedia import (QAudioOutput, QMediaFormat,
                                   QMediaPlayer)
 from PySide6.QtMultimediaWidgets import QVideoWidget
 from editor import VideoEditor
-import os.path
-
 
 AVI = "video/x-msvideo"  # AVI
 
@@ -39,7 +37,12 @@ class HomePage(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("OpenVideo")
+
         self.setAcceptDrops(True)
+
+        self.video_time = 0
+        self.tickpos = 0
+
         self._setupUI()
         self.resize(800, 600)
         #self.setCentralWidget(self._video_widget)
@@ -49,6 +52,8 @@ class HomePage(QMainWindow):
         self._tool_bar()
         self._menu_bar()
         #self._video_player()
+        # self.progress_handler()
+
     
     def _video_player(self):
         self.setAcceptDrops(True)
@@ -75,6 +80,18 @@ class HomePage(QMainWindow):
     def open_file(self, file_path):
         self._player.setSource(QUrl.fromLocalFile(file_path))
         self.filename = file_path.split('/')[-1]
+
+    def reset_progress(self):
+        self.tickpos = 0
+        self.progress.setValue(0)
+    
+    @Slot()
+    def progress_handler(self):
+        self.video_time = self._player.duration()
+        self.progress.setMaximum(self.video_time)
+        self.progress.setTickInterval(self.video_time)
+        print(f"max {self.progress.maximum()}")
+    
 
     def resume(self):
         if self._player.playbackState() != QMediaPlayer.PlaybackState.PausedState and self._player.hasVideo():
@@ -127,6 +144,8 @@ class HomePage(QMainWindow):
         else:
             self._pause_btn()
             self._stop_btn()
+        self._progress_bar()
+        
 
 
 
@@ -147,17 +166,36 @@ class HomePage(QMainWindow):
                         self.style().standardIcon(QStyle.SP_MediaStop))
         self._stop_action = self.tool_bar.addAction(icon, "Stop")
         self._stop_action.triggered.connect(self._ensure_stopped)
+    
+    def _progress_bar(self):
+        self.progress = QSlider(orientation=Qt.Orientation.Horizontal)
+        self.progress.setMaximum(self.video_time)
+        self.progress.setValue(self.tickpos)
+        self.progress.sliderMoved.connect(self.update_video)
+        self.tool_bar.addWidget(self.progress)
 
-
+    @Slot()
+    def increment_time(self):
+        self.tickpos = self._player.position()
+        self.progress.setValue(self.tickpos)
 
     @Slot()
     def _ensure_stopped(self):
         if self._player.playbackState() != QMediaPlayer.PlaybackState.StoppedState:
             self._player.stop()
+            self.reset_progress()
+        
+    @Slot()
+    def update_video(self):
+        print("aaaa")
+        if self._player.playbackState() != QMediaPlayer.PlaybackState.StoppedState and self._player.hasVideo():
+            self.tickpos = self.progress.value()
+            self._player.setPosition(self.tickpos)
+            
+
 
     @Slot()
     def _reverse_video(self):
-        self._ensure_stopped()
         if self._player.hasVideo():
             url = self._player.source()
             path = url.toLocalFile() if isinstance(url, QUrl) else url.path()
@@ -206,8 +244,11 @@ class HomePage(QMainWindow):
             self.setCentralWidget(self._video_widget)
             url = file_dialog.selectedUrls()[0]
             self.filename = url.fileName()
+            self._player.durationChanged.connect(self.progress_handler)
+            self._player.positionChanged.connect(self.increment_time)
             self._player.setSource(url)
             self._player.pause()
+
 
 
 class VideoWidget(QVideoWidget):
@@ -229,6 +270,7 @@ class VideoWidget(QVideoWidget):
             event.acceptProposedAction()
         else:
             event.ignore()
+
 
 
 
