@@ -2,6 +2,7 @@ import os.path
 from pathlib import Path
 import cv2
 import shutil
+from math import ceil
 
 """
 Python PIP's package for open-cv is >>self-contained<< (can't access system packages)
@@ -79,6 +80,13 @@ class VideoEditor(VideoEditorInterface):
         path = os.path.join("./output/", filename)
         shutil.copy(OUTPUT_DEFAULT, path)
         
+    @staticmethod
+    def get_time(path: str) -> int:
+        cap = cv2.VideoCapture(path)
+        frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        cap.release()
+        return int(frames // fps)
 
     def cut(self):
         video = self.read()
