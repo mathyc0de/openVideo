@@ -147,19 +147,28 @@ class HomePage(QMainWindow):
     def _progress_bar(self):
         self.progress = QSlider(orientation=Qt.Orientation.Horizontal)
         self.progress.setMaximum(self.video_time)
+        self.progress.setValue(self.tickpos)
+        self.progress.sliderMoved.connect(self.update_video)
         self.tool_bar.addWidget(self.progress)
 
     @Slot()
     def increment_time(self):
         self.tickpos = self._player.position()
         self.progress.setValue(self.tickpos)
-        print(self.progress.value(), self.progress.maximum())
 
     @Slot()
     def _ensure_stopped(self):
         if self._player.playbackState() != QMediaPlayer.PlaybackState.StoppedState:
             self._player.stop()
             self.reset_progress()
+        
+    @Slot()
+    def update_video(self):
+        print("aaaa")
+        if self._player.playbackState() != QMediaPlayer.PlaybackState.StoppedState and self._player.hasVideo():
+            self.tickpos = self.progress.value()
+            self._player.setPosition(self.tickpos)
+            
 
 
     @Slot()
