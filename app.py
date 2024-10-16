@@ -6,7 +6,7 @@ from PySide6.QtWidgets import (QApplication, QDialog, QFileDialog, QLabel, QVBox
                                QMainWindow, QSlider, QStyle, QToolBar)
 from PySide6.QtMultimedia import (QAudioOutput, QMediaFormat,
                                   QMediaPlayer)
-from PySide6.QtMultimediaWidgets import QVideoWidget
+from UI.widgets.video_widget import VideoWidget
 from editor import VideoEditor
 
 AVI = "video/x-msvideo"  # AVI
@@ -45,23 +45,19 @@ class HomePage(QMainWindow):
 
         self._setupUI()
         self.resize(800, 600)
-        #self.setCentralWidget(self._video_widget)
 
         
     def _setupUI(self):
         self._tool_bar()
         self._menu_bar()
-        #self._video_player()
-        # self.progress_handler()
 
     
     def _video_player(self):
-        self.setAcceptDrops(True)
         self._audio_output = QAudioOutput()
         self._player = QMediaPlayer()
         self._player.setAudioOutput(self._audio_output)
-        self._video_widget = VideoWidget(self)  # Use the custom widget
-        self._video_widget._player = self._player  # Give access to the player
+        self._video_widget = VideoWidget(self)
+        self._video_widget._player = self._player
         self._player.setVideoOutput(self._video_widget)
         self._mime_types = []
     
@@ -75,10 +71,6 @@ class HomePage(QMainWindow):
         files = [u.toLocalFile() for u in event.mimeData().urls()]
         firstURL = files[0]
         self.open(firstURL)
-
-    # def open_file(self, file_path):
-    #     self._player.setSource(QUrl.fromLocalFile(file_path))
-    #     self.filename = file_path.split('/')[-1]
 
     def reset_progress(self):
         self.tickpos = 0
@@ -248,30 +240,3 @@ class HomePage(QMainWindow):
             self._player.positionChanged.connect(self.increment_time)
             self._player.setSource(url)
             self._player.pause()
-
-
-
-class VideoWidget(QVideoWidget):
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setAcceptDrops(True)
-
-    def dragEnterEvent(self, event):
-        if event.mimeData().hasUrls():
-            event.acceptProposedAction()
-        else:
-            event.ignore()
-
-    def dropEvent(self, event):
-        if event.mimeData().hasUrls():
-            file_path = event.mimeData().urls()[0].toLocalFile()
-            self.load_video(file_path)
-            event.acceptProposedAction()
-        else:
-            event.ignore()
-
-
-
-
-App()
