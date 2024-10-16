@@ -1,3 +1,2 @@
 python-opencv                                              
-pygame
-pyvidplayer2
+pyside6
