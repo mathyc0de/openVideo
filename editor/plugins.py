@@ -2,7 +2,7 @@ import os.path
 from pathlib import Path
 import cv2
 import shutil
-from math import ceil
+from atexit import register
 
 """
 Python PIP's package for open-cv is >>self-contained<< (can't access system packages)
@@ -15,6 +15,7 @@ TODO: Recompile the OpenCV package so it can use proprietary codecs as .mp4.
 
 OUTPUT_DEFAULT = os.path.join("./output/tmp.mp4")
 
+@register
 def delete_temp():
     if os.path.isfile(OUTPUT_DEFAULT):
         os.remove(OUTPUT_DEFAULT)
@@ -80,14 +81,6 @@ class VideoEditor(VideoEditorInterface):
     def save_video(filename):
         path = os.path.join("./output/", filename)
         shutil.copy(OUTPUT_DEFAULT, path)
-        
-    @staticmethod
-    def get_time(path: str) -> int:
-        cap = cv2.VideoCapture(path)
-        frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
-        fps = cap.get(cv2.CAP_PROP_FPS)
-        cap.release()
-        return int(frames // fps)
 
     def cut(self):
         video = self.read()
