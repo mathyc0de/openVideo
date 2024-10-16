@@ -6,8 +6,10 @@ from PySide6.QtWidgets import (QApplication, QDialog, QFileDialog, QLabel, QVBox
                                QMainWindow, QSlider, QStyle, QToolBar)
 from PySide6.QtMultimedia import (QAudioOutput, QMediaFormat,
                                   QMediaPlayer)
-from UI.widgets.video_widget import VideoWidget
+from UI import VideoWidget, ToolBar, MenuBar
 from editor import VideoEditor
+
+
 
 AVI = "video/x-msvideo"  # AVI
 
@@ -23,7 +25,6 @@ def get_supported_mime_types():
     return result
 
 
-
 class App:
     def __init__(self) -> None:
         self.app = QApplication(sys.argv)
@@ -37,29 +38,29 @@ class HomePage(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("OpenVideo")
-
         self.setAcceptDrops(True)
-
-        self.video_time = 0
-        self.tickpos = 0
-
-        self._setupUI()
         self.resize(800, 600)
+        self.initState()
 
-        
-    def _setupUI(self):
-        self._tool_bar()
-        self._menu_bar()
 
+    def initState(self):
+        self._mime_types = get_supported_mime_types()
+        self.video_widget = VideoWidget()
+        self.player = self.video_widget.player
+        self.tool_bar = ToolBar(tick_pos = self.video_widget.tickpos)
+        self.tool_bar.play_action.triggered.connect(self.play)
+        self.tool_bar.pause_action.triggered.connect(self.pause)
+        self.tool_bar.stop_action.triggered.connect(self.stop)
+        self.tool_bar.progress.sliderMoved.connect(lambda: self.video_widget.update_video(self.tool_bar.progress.value()))
+        self.addToolBar(Qt.ToolBarArea.BottomToolBarArea, self.tool_bar)
+        self.menu_bar = MenuBar()
+        self.menu_bar.open_action.triggered.connect(self.open)
+        self.menu_bar.reverse_action.triggered.connect(self.reverse_video)
+        self.menu_bar.save_action.triggered.connect(self.save_video)
+        self.setMenuBar(self.menu_bar)
     
-    def _video_player(self):
-        self._audio_output = QAudioOutput()
-        self._player = QMediaPlayer()
-        self._player.setAudioOutput(self._audio_output)
-        self._video_widget = VideoWidget(self)
-        self._video_widget._player = self._player
-        self._player.setVideoOutput(self._video_widget)
-        self._mime_types = []
+    def not_have_video(self): return self.player.playbackState() == QMediaPlayer.PlaybackState.StoppedState or not self.player.hasVideo()
+    
     
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
@@ -71,148 +72,64 @@ class HomePage(QMainWindow):
         files = [u.toLocalFile() for u in event.mimeData().urls()]
         firstURL = files[0]
         self.open(firstURL)
-
-    def reset_progress(self):
-        self.tickpos = 0
-        self.progress.setValue(0)
+    
+    @Slot()
+    def play(self):
+        self.video_widget.play()
+        self.tool_bar.play()
+    
+    @Slot()
+    def pause(self):
+        self.video_widget.pause()
+        self.tool_bar.pause()
+    
+    @Slot()
+    def stop(self):
+        self.video_widget.stop()
+        self.tool_bar.stop()
+        self.takeCentralWidget()
     
     @Slot()
     def progress_handler(self):
-        self.video_time = self._player.duration()
-        self.progress.setMaximum(self.video_time)
-        self.progress.setTickInterval(self.video_time)
-        print(f"max {self.progress.maximum()}")
+        time = self.player.duration()
+        self.tool_bar.set_progress_limit(time)
     
-
-    def resume(self):
-        if self._player.playbackState() != QMediaPlayer.PlaybackState.PausedState and self._player.hasVideo():
-            self.removeToolBar(self.tool_bar)
-            self._tool_bar(True)
-            self._player.pause()
-
-        elif self._player.hasVideo():
-            self.removeToolBar(self.tool_bar)
-            self._tool_bar(False)
-            self._player.play()
-
-    
-    def _menu_bar(self):
-        self._file_section()
-        self._editor_section()
-
-    def _file_section(self):
-        menu = self.menuBar().addMenu("&File")
-        icon = QIcon.fromTheme(QIcon.ThemeIcon.DocumentOpen)
-        open_action = QAction(icon, "&Open...", self,
-                              shortcut=QKeySequence.Open, triggered=self.open)
-        menu.addAction(open_action)
-    
-    def _editor_section(self):
-        menu = self.menuBar().addMenu("&Edit")
-        self.reverse(menu)
-        self.save(menu)
-
-    
-    def reverse(self, menu):
-        icon = QIcon.fromTheme(QIcon.ThemeIcon.MediaSeekBackward)
-        reverse_action = QAction(icon, "&Reverter...", self,
-                              shortcut=QKeySequence.Open, triggered=self._reverse_video)
-        menu.addAction(reverse_action)
-    
-    def save(self, menu):
-        icon = QIcon.fromTheme(QIcon.ThemeIcon.DocumentSave)
-        save_action = QAction(icon, "&Salvar...", self,
-                              shortcut=QKeySequence.Open, triggered=self._save_video)
-        menu.addAction(save_action)
-
-    
-    def _tool_bar(self, paused: bool = True):
-        self.tool_bar = QToolBar()
-        self.addToolBar(Qt.ToolBarArea.BottomToolBarArea, self.tool_bar)
-        if paused:
-            self._play_btn()
-            self._stop_btn()
-        else:
-            self._pause_btn()
-            self._stop_btn()
-        self._progress_bar()
-        
-
-
-
-    def _play_btn(self):
-        icon = QIcon.fromTheme(QIcon.ThemeIcon.MediaPlaybackStart,
-                            self.style().standardIcon(QStyle.SP_MediaPlay))
-        self._play_action = self.tool_bar.addAction(icon, "Play")
-        self._play_action.triggered.connect(self.resume)
-    
-    def _pause_btn(self):
-        icon = QIcon.fromTheme(QIcon.ThemeIcon.MediaPlaybackPause,
-                            self.style().standardIcon(QStyle.SP_MediaPause))
-        self._pause_action = self.tool_bar.addAction(icon, "Pause")
-        self._pause_action.triggered.connect(self.resume)
-    
-    def _stop_btn(self):
-        icon = QIcon.fromTheme(QIcon.ThemeIcon.MediaPlaybackStop,
-                        self.style().standardIcon(QStyle.SP_MediaStop))
-        self._stop_action = self.tool_bar.addAction(icon, "Stop")
-        self._stop_action.triggered.connect(self._ensure_stopped)
-    
-    def _progress_bar(self):
-        self.progress = QSlider(orientation=Qt.Orientation.Horizontal)
-        self.progress.setMaximum(self.video_time)
-        self.progress.setValue(self.tickpos)
-        self.progress.sliderMoved.connect(self.update_video)
-        self.tool_bar.addWidget(self.progress)
-
     @Slot()
     def increment_time(self):
-        self.tickpos = self._player.position()
-        self.progress.setValue(self.tickpos)
+        self.tickpos = self.player.position()
+        self.tool_bar.progress.setValue(self.tickpos)
 
     @Slot()
-    def _ensure_stopped(self):
-        if self._player.playbackState() != QMediaPlayer.PlaybackState.StoppedState:
-            self._player.stop()
-            self.reset_progress()
-        
-    @Slot()
-    def update_video(self):
-        if self._player.playbackState() != QMediaPlayer.PlaybackState.StoppedState and self._player.hasVideo():
-            self.tickpos = self.progress.value()
-            self._player.setPosition(self.tickpos)
-            
-
+    def reverse_video(self):
+        if self.not_have_video(): return
+        self.pause()
+        url = self.player.source()
+        path = url.toLocalFile() if isinstance(url, QUrl) else url.path()
+        editor = VideoEditor(path)
+        self.player.setSource(editor.reverse())
+        self.player.pause()
 
     @Slot()
-    def _reverse_video(self):
-        if self._player.hasVideo():
-            url = self._player.source()
-            path = url.toLocalFile() if isinstance(url, QUrl) else url.path()
-            editor = VideoEditor(path)
-            self._player.setSource(editor.reverse())
-            self._player.pause()
-
-    @Slot()
-    def _save_video(self):
-        self._ensure_stopped()
-        if self._player.hasVideo():
-            VideoEditor.save_video(self.filename)
+    def save_video(self):
+        if self.player.playbackState() == QMediaPlayer.PlaybackState.StoppedState: return
+        self.pause()
+        url = self.player.source()
+        path = url.toLocalFile() if isinstance(url, QUrl) else url.path()
+        VideoEditor.save_video(self.filename, url = path)
 
 
     @Slot()
     def open(self, draggedURL):
-        self._video_player()
-        self._ensure_stopped()
-        
+        self.takeCentralWidget()
         if (draggedURL):
-            self.setCentralWidget(self._video_widget)
+            self.setCentralWidget(self.video_widget)
             url = draggedURL
-            self._player.setSource(url)
-            self._player.pause()
+            self.player.setSource(url)
+            self.player.pause()
             self.filename = url.split('/')[-1]
-            self._player.durationChanged.connect(self.progress_handler)
-            self._player.positionChanged.connect(self.increment_time)
+            self.player.durationChanged.connect(self.progress_handler)
+            self.player.positionChanged.connect(self.increment_time)
+            self.tool_bar.play_action.setEnabled(True)
             return
 
         file_dialog = QFileDialog(self)
@@ -233,10 +150,11 @@ class HomePage(QMainWindow):
         movies_location = QStandardPaths.writableLocation(QStandardPaths.MoviesLocation)
         file_dialog.setDirectory(movies_location)
         if file_dialog.exec() == QDialog.Accepted:
-            self.setCentralWidget(self._video_widget)
+            self.setCentralWidget(self.video_widget)
             url = file_dialog.selectedUrls()[0]
             self.filename = url.fileName()
-            self._player.durationChanged.connect(self.progress_handler)
-            self._player.positionChanged.connect(self.increment_time)
-            self._player.setSource(url)
-            self._player.pause()
+            self.player.durationChanged.connect(self.progress_handler)
+            self.player.positionChanged.connect(self.increment_time)
+            self.player.setSource(url)
+            self.player.pause()
+            self.tool_bar.play_action.setEnabled(True)

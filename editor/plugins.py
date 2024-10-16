@@ -78,9 +78,10 @@ class VideoEditor(VideoEditorInterface):
         return OUTPUT_DEFAULT
     
     @staticmethod
-    def save_video(filename):
+    def save_video(filename: str, url: str = None):
         path = os.path.join("./output/", filename)
-        shutil.copy(OUTPUT_DEFAULT, path)
+        shutil.copy(OUTPUT_DEFAULT, path) if os.path.isfile(OUTPUT_DEFAULT) else shutil.copy(url, path)
+        
 
     def cut(self):
         video = self.read()
