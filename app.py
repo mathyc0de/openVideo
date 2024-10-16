@@ -74,12 +74,11 @@ class HomePage(QMainWindow):
     def dropEvent(self, event):
         files = [u.toLocalFile() for u in event.mimeData().urls()]
         firstURL = files[0]
-        print(firstURL)
         self.open(firstURL)
 
-    def open_file(self, file_path):
-        self._player.setSource(QUrl.fromLocalFile(file_path))
-        self.filename = file_path.split('/')[-1]
+    # def open_file(self, file_path):
+    #     self._player.setSource(QUrl.fromLocalFile(file_path))
+    #     self.filename = file_path.split('/')[-1]
 
     def reset_progress(self):
         self.tickpos = 0
@@ -187,7 +186,6 @@ class HomePage(QMainWindow):
         
     @Slot()
     def update_video(self):
-        print("aaaa")
         if self._player.playbackState() != QMediaPlayer.PlaybackState.StoppedState and self._player.hasVideo():
             self.tickpos = self.progress.value()
             self._player.setPosition(self.tickpos)
@@ -214,16 +212,18 @@ class HomePage(QMainWindow):
     def open(self, draggedURL):
         self._video_player()
         self._ensure_stopped()
-        file_dialog = QFileDialog(self)
         
         if (draggedURL):
             self.setCentralWidget(self._video_widget)
             url = draggedURL
             self._player.setSource(url)
             self._player.pause()
+            self.filename = url.split('/')[-1]
+            self._player.durationChanged.connect(self.progress_handler)
+            self._player.positionChanged.connect(self.increment_time)
+            return
 
-            return 1
-
+        file_dialog = QFileDialog(self)
         is_windows = sys.platform == 'win32'
         if not self._mime_types:
             self._mime_types = get_supported_mime_types()
