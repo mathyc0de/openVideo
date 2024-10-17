@@ -1,5 +1,6 @@
 from __future__ import annotations
 import sys
+import os.path
 from PySide6.QtCore import QStandardPaths, Qt, Slot, QUrl, QSize, QRect, Qt
 from PySide6.QtGui import QAction, QIcon, QKeySequence
 from PySide6.QtWidgets import (QApplication, QDialog, QFileDialog, QLabel, QVBoxLayout,
@@ -12,13 +13,16 @@ class ToolBar(QToolBar):
         super().__init__()
         self.video_time = video_time
         self.tickpos = tick_pos
-
+        self.setMovable(False)
+        self.__fullscreen_icon = QIcon()
+        self.__fullscreen_icon.addFile(os.path.join("./", "assets/", "fullscreen.png"))
         self.__play_action = QAction(QIcon.fromTheme(QIcon.ThemeIcon.MediaPlaybackStart,
                             self.style().standardIcon(QStyle.SP_MediaPlay)), "Play")
         self.__pause_action = QAction(QIcon.fromTheme(QIcon.ThemeIcon.MediaPlaybackPause,
                             self.style().standardIcon(QStyle.SP_MediaPause)), "Pause")
         self.__stop_action = QAction(QIcon.fromTheme(QIcon.ThemeIcon.MediaPlaybackStop,
                         self.style().standardIcon(QStyle.SP_MediaStop)), "Stop")
+        self.__fullscreen_action = QAction(self.__fullscreen_icon, "Fullscreen")
         self.__play_action.setDisabled(True)
         self.__progress = QSlider(orientation=Qt.Orientation.Horizontal)
         self.__progress.setMaximum(self.video_time)
@@ -35,6 +39,7 @@ class ToolBar(QToolBar):
             self.removeAction(self.__stop_action)
         self.addAction(self.__pause_action)
         self.addAction(self.__stop_action)
+        self.addAction(self.__fullscreen_action)
         self.addWidget(self.progress)
     
     def pause(self):
@@ -43,6 +48,7 @@ class ToolBar(QToolBar):
             self.removeAction(self.__stop_action)
         self.addAction(self.__play_action)
         self.addAction(self.__stop_action)
+        self.addAction(self.__fullscreen_action)
         self.addWidget(self.progress)
     
     def stop(self):
@@ -77,3 +83,7 @@ class ToolBar(QToolBar):
     @property
     def progress(self) -> QSlider:
         return self.__progress
+
+    @property
+    def fullscreen_action(self) -> QAction:
+        return self.__fullscreen_action

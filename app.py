@@ -1,8 +1,8 @@
 from __future__ import annotations
 import sys
-from PySide6.QtCore import QStandardPaths, Qt, Slot, QUrl, QSize, QRect, Qt
+from PySide6.QtCore import QStandardPaths, Qt, Slot, QUrl, QSize, QRect, Qt, QTimer
 from PySide6.QtGui import QAction, QIcon, QKeySequence
-from PySide6.QtWidgets import (QApplication, QDialog, QFileDialog, QLabel, QVBoxLayout,
+from PySide6.QtWidgets import (QApplication, QDialog, QFileDialog, QLabel, QVBoxLayout, QWidget,
                                QMainWindow, QSlider, QStyle, QToolBar)
 from PySide6.QtMultimedia import (QAudioOutput, QMediaFormat,
                                   QMediaPlayer)
@@ -52,6 +52,7 @@ class HomePage(QMainWindow):
         self.tool_bar.pause_action.triggered.connect(self.pause)
         self.tool_bar.stop_action.triggered.connect(self.stop)
         self.tool_bar.progress.sliderMoved.connect(lambda: self.video_widget.update_video(self.tool_bar.progress.value()))
+        self.tool_bar.fullscreen_action.triggered.connect(self.fullscreen)
         self.addToolBar(Qt.ToolBarArea.BottomToolBarArea, self.tool_bar)
         self.menu_bar = MenuBar()
         self.menu_bar.open_action.triggered.connect(self.open)
@@ -88,7 +89,14 @@ class HomePage(QMainWindow):
         self.video_widget.stop()
         self.tool_bar.stop()
         self.takeCentralWidget()
-    
+
+    @Slot()
+    def fullscreen(self):
+        if self.isFullScreen():
+            self.showNormal()
+        else:
+            self.showFullScreen()
+
     @Slot()
     def progress_handler(self):
         time = self.player.duration()
