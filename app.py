@@ -94,14 +94,19 @@ class HomePage(QMainWindow):
     def fullscreen(self):
         if self.isFullScreen():
             self.showNormal()
+            self.tool_bar.show()
+            self.menu_bar.show()
+
         else:
             self.showFullScreen()
+            self.tool_bar.hide()
+            self.menu_bar.hide()
 
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
             if self.isFullScreen():
-                self.showNormal()
+                self.fullscreen()
 
     @Slot()
     def progress_handler(self):
