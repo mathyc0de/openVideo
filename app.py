@@ -97,6 +97,12 @@ class HomePage(QMainWindow):
         else:
             self.showFullScreen()
 
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Escape:
+            if self.isFullScreen():
+                self.showNormal()
+
     @Slot()
     def progress_handler(self):
         time = self.player.duration()
