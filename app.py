@@ -127,6 +127,9 @@ class HomePage(QMainWindow):
                 self.fullscreen()
 
     def on_move(self, x, y):
+
+
+        """\/\/NAO FUNCIONAAAAAAAA \/\/"""
         self.end = time()
         self.enlapsed_time = self.end - self.start_time
         self.start_time = time()
