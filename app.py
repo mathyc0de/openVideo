@@ -8,6 +8,7 @@ from PySide6.QtMultimedia import (QAudioOutput, QMediaFormat,
                                   QMediaPlayer)
 from UI import VideoWidget, ToolBar, MenuBar
 from editor import VideoEditor
+from time import time
 
 
 
@@ -34,13 +35,20 @@ class App:
 
 
 class HomePage(QMainWindow):
-
     def __init__(self):
+        from pynput.mouse import Listener
+
         super().__init__()
         self.setWindowTitle("OpenVideo")
         self.setAcceptDrops(True)
         self.resize(800, 600)
         self.initState()
+
+        # For some reason, PyQt's mouse tracking didn't work well with the QVideoWidget over the QMainWindow.
+        # So I'm using Pynput as an external solution.
+        listener = Listener(on_move=self.on_move)
+        listener.start()
+        self.start_time = time()
 
 
     def initState(self):
@@ -113,11 +121,21 @@ class HomePage(QMainWindow):
             self.tool_bar.hide()
             self.menu_bar.hide()
 
-
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
             if self.isFullScreen():
                 self.fullscreen()
+
+    def on_move(self, x, y):
+        self.end = time()
+        self.enlapsed_time = self.end - self.start_time
+        self.start_time = time()
+
+        #print(f"Pointer moved to {x, y}")
+        #print(self.enlapsed_time)
+        if (self.isFullScreen):
+            self.tool_bar.show()
+            self.menu_bar.show()
 
     @Slot()
     def progress_handler(self):
