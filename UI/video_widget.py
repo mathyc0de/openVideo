@@ -38,3 +38,6 @@ class VideoWidget(QVideoWidget):
         if self.player.playbackState() != QMediaPlayer.PlaybackState.StoppedState and self.player.hasVideo():
             self.tickpos = progress_value
             self.player.setPosition(self.tickpos)
+    
+    @property
+    def isPaused(self): return True if self.player.playbackState() == QMediaPlayer.PlaybackState.PausedState else False
