@@ -44,6 +44,7 @@ class HomePage(QMainWindow):
 
 
     def initState(self):
+        self.locked = False
         self._mime_types = get_supported_mime_types()
         self.video_widget = VideoWidget()
         self.player = self.video_widget.player
@@ -52,6 +53,8 @@ class HomePage(QMainWindow):
         self.tool_bar.pause_action.triggered.connect(self.pause)
         self.tool_bar.stop_action.triggered.connect(self.stop)
         self.tool_bar.progress.sliderMoved.connect(lambda: self.video_widget.update_video(self.tool_bar.progress.value()))
+        self.tool_bar.progress.sliderPressed.connect(self.slider_lock)
+        self.tool_bar.progress.sliderReleased.connect(self.slider_unlock)
         self.tool_bar.fullscreen_action.triggered.connect(self.fullscreen)
         self.addToolBar(Qt.ToolBarArea.BottomToolBarArea, self.tool_bar)
         self.menu_bar = MenuBar()
@@ -112,6 +115,19 @@ class HomePage(QMainWindow):
     def progress_handler(self):
         time = self.player.duration()
         self.tool_bar.set_progress_limit(time)
+    
+    @Slot()
+    def slider_lock(self):
+        if not self.video_widget.isPaused:
+            self.video_widget.pause()
+            self.locked = True
+
+    @Slot()
+    def slider_unlock(self):
+        if self.locked:
+            self.video_widget.play()
+            self.locked = False
+
     
     @Slot()
     def increment_time(self):
