@@ -23,10 +23,15 @@ class ToolBar(QToolBar):
         self.__stop_action = QAction(QIcon.fromTheme(QIcon.ThemeIcon.MediaPlaybackStop,
                         self.style().standardIcon(QStyle.SP_MediaStop)), "Stop")
         self.__fullscreen_action = QAction(self.__fullscreen_icon, "Fullscreen")
-        self.__play_action.setDisabled(True)
+        self.__volume_slider = QSlider(orientation=Qt.Orientation.Vertical)
+        self.__volume_slider.setFixedHeight(40)
+        self.__volume_slider.setSliderPosition(50)
+        self.__volume_slider.setMaximum(100)
+        
         self.__progress = QSlider(orientation=Qt.Orientation.Horizontal)
         self.__progress.setMaximum(self.video_time)
         self.__progress.setValue(self.tickpos)
+        self.__progress.setToolTip("time")
         self.pause()
     
     def have_actions(self) -> bool:
@@ -40,6 +45,7 @@ class ToolBar(QToolBar):
         self.addAction(self.__pause_action)
         self.addAction(self.__stop_action)
         self.addAction(self.__fullscreen_action)
+        self.addWidget(self.__volume_slider)
         self.addWidget(self.progress)
     
     def pause(self):
@@ -49,6 +55,7 @@ class ToolBar(QToolBar):
         self.addAction(self.__play_action)
         self.addAction(self.__stop_action)
         self.addAction(self.__fullscreen_action)
+        self.addWidget(self.__volume_slider)
         self.addWidget(self.progress)
     
     def stop(self):
@@ -83,6 +90,10 @@ class ToolBar(QToolBar):
     @property
     def progress(self) -> QSlider:
         return self.__progress
+    
+    @property
+    def volume_slider(self) -> QSlider:
+        return self.__volume_slider
 
     @property
     def fullscreen_action(self) -> QAction:

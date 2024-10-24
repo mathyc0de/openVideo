@@ -47,11 +47,15 @@ class HomePage(QMainWindow):
         self._mime_types = get_supported_mime_types()
         self.video_widget = VideoWidget()
         self.player = self.video_widget.player
+        self.audio_output = QAudioOutput()
+        self.player.setAudioOutput(self.audio_output)
+        self.audio_output.setVolume(50)
         self.tool_bar = ToolBar(tick_pos = self.video_widget.tickpos)
         self.tool_bar.play_action.triggered.connect(self.play)
         self.tool_bar.pause_action.triggered.connect(self.pause)
         self.tool_bar.stop_action.triggered.connect(self.stop)
         self.tool_bar.progress.sliderMoved.connect(lambda: self.video_widget.update_video(self.tool_bar.progress.value()))
+        self.tool_bar.volume_slider.sliderMoved.connect(self.setVolume)
         self.tool_bar.fullscreen_action.triggered.connect(self.fullscreen)
         self.addToolBar(Qt.ToolBarArea.BottomToolBarArea, self.tool_bar)
         self.menu_bar = MenuBar()
@@ -89,6 +93,10 @@ class HomePage(QMainWindow):
         self.video_widget.stop()
         self.tool_bar.stop()
         self.takeCentralWidget()
+
+    @Slot()
+    def setVolume(self):
+        self.audio_output.setVolume(self.tool_bar.volume_slider.value() * 0.01)
 
     @Slot()
     def fullscreen(self):
