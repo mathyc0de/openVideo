@@ -2,6 +2,8 @@
 
 openVideo - Open Source Video Editor - is a powerful and easy-to-use application for video playback and editing. With openVideo, you can play a wide variety of video formats, apply effects, cut, resize, and much more (editor is under development).
 
+![](https://i.imgur.com/2Dnm1nt.gif)
+
 
 ## Features
 
