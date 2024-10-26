@@ -72,9 +72,9 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 <table>
   <tr>
-    <td align="center"><a href="https://github.com/mathyc0de"><img src="https://avatars.githubusercontent.com/u/135391387?v=4" width="100px;" alt="Matheus Silveira"/><br /><sub><b>mathyc0de</b></sub></a></td>
-      <td align="center"><a href="https://github.com/Juyuvi"><img src="https://avatars.githubusercontent.com/u/123633637?v=4" width="100px;" alt="MuriloIA"/><br /><sub><b>Juyuvi</b></sub></a></td>
-    <td align="center"><a href="https://github.com/Conexao1"><img src="https://avatars.githubusercontent.com/u/111819952?v=4" width="100px;" alt="Fabiano Mendonça"/><br /><sub><b>Conexao1</b></sub></a></td>
+    <td align="center"><a href="https://github.com/mathyc0de"><img src="https://avatars.githubusercontent.com/u/135391387?v=4" width="100px;"/><br /><sub><b>mathyc0de</b></sub></a></td>
+      <td align="center"><a href="https://github.com/Juyuvi"><img src="https://avatars.githubusercontent.com/u/123633637?v=4" width="100px;"/><br /><sub><b>Juyuvi</b></sub></a></td>
+    <td align="center"><a href="https://github.com/Conexao1"><img src="https://avatars.githubusercontent.com/u/111819952?v=4" width="100px;"/><br /><sub><b>Conexao1</b></sub></a></td>
   </tr>
 </table>
 
